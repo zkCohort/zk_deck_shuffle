@@ -10,7 +10,7 @@ snarkvm build
 
 To execute this Aleo program, run:
 
-The program consideres the following 8 bit values as standard card values but values can be changed in size up to 128 bits:
+The program considers the following 8 bit values as standard card values but values can be changed in size up to 128 bits:
 63u8..12u8 (63 representing the left most bit in a u64 flipped to 1 and all 0's to the right, and 62 representing 010000... and so on)
 
 ```bash
