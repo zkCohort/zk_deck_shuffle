@@ -176,7 +176,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 return s00a25;
             }
             else {
-                // assert(false);
+                assert(false);
                 return 0u128;
             }
         } else if (series_index == 1u8) {
@@ -259,11 +259,11 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 return s01b25;
             }
             else {
-                // assert(false);
+                assert(false);
                 return 0u128;
             }
         } else {
-            // assert(false);
+            assert(false);
             return 0u128;
         }
     }
@@ -408,7 +408,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 s00a25 = buffer;
             }
             else {
-                // assert(false);
+                assert(false);
             }
         } else if (series_index == 1u8) {
             if (buffer_index == 0u8) {
@@ -490,10 +490,10 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 s01b25 = buffer;
             }
             else {
-                // assert(false);
+                assert(false);
             }
         } else {
-            // assert(false);
+            assert(false);
         }
         let series_s00: [u128; 26] = [s00a0, s00a1, s00a2, s00a3, s00a4, s00a5, s00a6, s00a7, s00a8, s00a9, s00a10, s00a11, s00a12, s00a13, s00a14, s00a15, s00a16, s00a17, s00a18, s00a19, s00a20, s00a21, s00a22, s00a23, s00a24, s00a25];
         let series_s01: [u128; 26] = [s01b0, s01b1, s01b2, s01b3, s01b4, s01b5, s01b6, s01b7, s01b8, s01b9, s01b10, s01b11, s01b12, s01b13, s01b14, s01b15, s01b16, s01b17, s01b18, s01b19, s01b20, s01b21, s01b22, s01b23, s01b24, s01b25];
@@ -501,8 +501,8 @@ program zk_deck_shuffle_v0_0_1.aleo {
     }
 
     function init_stack(member_size: u8) -> Stack {
-        // assert(member_size <= 128u8);
-        // assert_eq(member_size % 8u8, 0u8);
+        assert(member_size <= 128u8);
+        assert_eq(member_size % 8u8, 0u8);
         let max_size: u16 = member_size as u16;
         let capacity: u16 = 6656u16 / max_size;
         // Check for overflow
@@ -562,12 +562,28 @@ program zk_deck_shuffle_v0_0_1.aleo {
 
         // Calculate mask.
         let mask: u128 = MAX_U128_VALUE;
+        // Extract value and calculate new series. (Initial values for FULL_BITS member_size)
+        let value: u128 = series;
+        let new_series: u128 = 0u128;
         if (stack.member_size < FULL_BITS) {
             mask = MAX_U128_VALUE.shr_wrapped(FULL_BITS - stack.member_size);
+            value = series & mask;
+            if (stack.member_size == 8u8) {
+                new_series = series >> 8u8;
+            }
+            else if (stack.member_size == 16u8) {
+                new_series = series >> 16u8;
+            }
+            else if (stack.member_size == 32u8) {
+                new_series = series >> 32u8;
+            }
+            else if (stack.member_size == 64u8) {
+                new_series = series >> 64u8;
+            }
+            else {
+                assert(false);
+            }
         }
-        // Extract value and calculate new series
-        let value: u128 = series & mask;
-        let new_series: u128 = series >> stack.member_size;
         let (s00, s01): ([u128; 26], [u128; 26]) = set_series(series_index, buffer_index, stack, new_series);
         return (value, Stack {
             capacity: stack.capacity,
@@ -821,8 +837,12 @@ program zk_deck_shuffle_v0_0_1.aleo {
         return (a28);
     }
 
-    transition test_pop_u8() -> (Stack) {
-        let a1: Stack = init_stack(8u8);
+    transition test_pop_u8() -> (u128, Stack) {
+        // let a1: Stack = init_stack(8u8);
+        // let a1: Stack = init_stack(16u8);
+        // let a1: Stack = init_stack(32u8);
+        // let a1: Stack = init_stack(64u8);
+        let a1: Stack = init_stack(128u8);
         let a2: Stack = push(1u128, a1);
         let a3: Stack = push(2u128, a2);
         let a4: Stack = push(3u128, a3);
@@ -877,7 +897,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
         let tuple_b25: (u128, Stack) = pop(tuple_b24.1);
         let tuple_b26: (u128, Stack) = pop(tuple_b25.1);
         let tuple_b27: (u128, Stack) = pop(tuple_b26.1);
-        return (tuple_b27.1);
+        return tuple_b27;
     }
 
     transition test_push_pop() -> (Stack, Stack, Stack, u128) {
