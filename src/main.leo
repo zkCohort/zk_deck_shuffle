@@ -9,15 +9,15 @@ program zk_deck_shuffle_v0_0_1.aleo {
     }
 
     struct Stack {
-        capacity: u8,
-        top: u8,
+        capacity: u16,
+        top: u16,
         member_size: u8,
         s00: [u128; 26],
         s01: [u128; 26],
     }
 
     inline is_empty(stack: Stack) -> bool {
-        return stack.top == 0u8;
+        return stack.top == 0u16;
     }
 
     inline is_full(stack: Stack) -> bool {
@@ -30,12 +30,15 @@ program zk_deck_shuffle_v0_0_1.aleo {
     // capacity is the number of elements that can be stored in the stack.
     //   capacity is calculated from member_size.
     //   capacity = 128 * 26 * 2 / member_size
-    inline get_series_buffer_indexes(top: u8, member_size: u8) -> (u8, u8) {
+    inline get_series_buffer_indexes(top: u16, member_size: u8) -> (u8, u8) {
         assert(member_size > 0u8);
-        let elements_per_buffer: u8 = 128u8 / member_size;
-        let series_index: u8 = top / elements_per_buffer;
-        let buffer_index: u8 = top % elements_per_buffer;
-        return (series_index, buffer_index);
+        const BUFFERS_PER_SERIES: u16 = 26u16;
+        const FULL_BITS: u16 = 128u16;
+        let size_in_bits: u16 = member_size as u16;
+        let elements_per_buffer: u16 = FULL_BITS / size_in_bits;
+        let series_index: u16 = top / (elements_per_buffer * BUFFERS_PER_SERIES);
+        let buffer_index: u16 = (top / elements_per_buffer) % BUFFERS_PER_SERIES;
+        return (series_index as u8, buffer_index as u8);
     }
 
     inline get_series(series_index: u8, buffer_index: u8, stack: Stack) -> u128 {
@@ -173,7 +176,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 return s00a25;
             }
             else {
-                assert(false);
+                // assert(false);
                 return 0u128;
             }
         } else if (series_index == 1u8) {
@@ -256,11 +259,11 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 return s01b25;
             }
             else {
-                assert(false);
+                // assert(false);
                 return 0u128;
             }
         } else {
-            assert(false);
+            // assert(false);
             return 0u128;
         }
     }
@@ -268,9 +271,9 @@ program zk_deck_shuffle_v0_0_1.aleo {
     inline set_series(series_index: u8, buffer_index: u8, stack: Stack, buffer: u128) -> ([u128; 26], [u128; 26]) {
         // Top relative to how many 256 bit series have been used with stack.member_size lengthy elements.  
         // It is the index of the next series to be used.
-        let top: u8 = stack.top;
+        let top: u16 = stack.top;
         let member_size: u8 = stack.member_size;
-        let capacity: u8 = stack.capacity;
+        let capacity: u16 = stack.capacity;
         let s00: [u128; 26] = stack.s00;
         let s01: [u128; 26] = stack.s01;
         let s00a0: u128 = s00[0u8];
@@ -405,7 +408,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 s00a25 = buffer;
             }
             else {
-                assert(false);
+                // assert(false);
             }
         } else if (series_index == 1u8) {
             if (buffer_index == 0u8) {
@@ -487,10 +490,10 @@ program zk_deck_shuffle_v0_0_1.aleo {
                 s01b25 = buffer;
             }
             else {
-                assert(false);
+                // assert(false);
             }
         } else {
-            assert(false);
+            // assert(false);
         }
         let series_s00: [u128; 26] = [s00a0, s00a1, s00a2, s00a3, s00a4, s00a5, s00a6, s00a7, s00a8, s00a9, s00a10, s00a11, s00a12, s00a13, s00a14, s00a15, s00a16, s00a17, s00a18, s00a19, s00a20, s00a21, s00a22, s00a23, s00a24, s00a25];
         let series_s01: [u128; 26] = [s01b0, s01b1, s01b2, s01b3, s01b4, s01b5, s01b6, s01b7, s01b8, s01b9, s01b10, s01b11, s01b12, s01b13, s01b14, s01b15, s01b16, s01b17, s01b18, s01b19, s01b20, s01b21, s01b22, s01b23, s01b24, s01b25];
@@ -498,18 +501,18 @@ program zk_deck_shuffle_v0_0_1.aleo {
     }
 
     function init_stack(member_size: u8) -> Stack {
-        assert(member_size <= 128u8);
-        assert_eq(member_size % 8u8, 0u8);
+        // assert(member_size <= 128u8);
+        // assert_eq(member_size % 8u8, 0u8);
         let max_size: u16 = member_size as u16;
-        let capacity: u8 = (6656u16 / max_size) as u8;
+        let capacity: u16 = 6656u16 / max_size;
         // Check for overflow
-        assert(capacity > 0u8); 
-        assert(capacity <= 64u8);
+        assert(capacity > 0u16); 
+        assert(capacity <= 832u16);
         assert(member_size > 0u8);
         assert(member_size <= 128u8);
         return Stack {
             capacity,
-            top: 0u8,
+            top: 0u16,
             member_size,
             s00: [0u128, 0u128, 0u128, 0u128, 0u128, 0u128,0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128,
                  0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128],
@@ -524,14 +527,11 @@ program zk_deck_shuffle_v0_0_1.aleo {
         const ZERO: u8 = 0u8;
         const ONE: u8 = 1u8;
         let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(stack.top, stack.member_size);
-        if (stack.top + ONE) * stack.member_size % FULL_BITS < stack.member_size && (stack.top + ONE) * stack.member_size % FULL_BITS != ZERO {
-            series_index += 1u8;
-        }
         // Calculate series_index and modify if necessary
         let series: u128 = get_series(series_index, buffer_index, stack);
         let mask: u128 = MAX_U128_VALUE;
         if (stack.member_size < FULL_BITS) {
-            mask = MAX_U128_VALUE.shr(FULL_BITS - stack.member_size);
+            mask = MAX_U128_VALUE.shr_wrapped(FULL_BITS - stack.member_size);
         }
 
         // Check for overflow
@@ -545,7 +545,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
 
         return Stack {
             capacity: stack.capacity,
-            top: stack.top + 1u8,
+            top: stack.top + 1u16,
             member_size: stack.member_size,
             s00,
             s01,
@@ -557,13 +557,13 @@ program zk_deck_shuffle_v0_0_1.aleo {
         const FULL_BITS: u8 = 128u8;
         // Check for underflow.
         assert(!is_empty(stack));
-        let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(stack.top - 1u8, stack.member_size);
+        let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(stack.top - 1u16, stack.member_size);
         let series: u128 = get_series(series_index, buffer_index, stack);
 
         // Calculate mask.
         let mask: u128 = MAX_U128_VALUE;
         if (stack.member_size < FULL_BITS) {
-            mask = MAX_U128_VALUE.shr(FULL_BITS - stack.member_size);
+            mask = MAX_U128_VALUE.shr_wrapped(FULL_BITS - stack.member_size);
         }
         // Extract value and calculate new series
         let value: u128 = series & mask;
@@ -571,7 +571,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
         let (s00, s01): ([u128; 26], [u128; 26]) = set_series(series_index, buffer_index, stack, new_series);
         return (value, Stack {
             capacity: stack.capacity,
-            top: stack.top - 1u8,
+            top: stack.top - 1u16,
             member_size: stack.member_size,
             s00,
             s01,
@@ -579,8 +579,8 @@ program zk_deck_shuffle_v0_0_1.aleo {
     }
 
     transition shuffle_deck(n: i8, member_size: u8, a: [u128; 26], b: [u128; 26]) -> [[u128; 26]; 2] {
-        // assert(n >= 1i8);
-        // assert(n <= 26i8);
+        assert(n >= 1i8);
+        assert(n <= 26i8);
         let a_index: u8 = 0u8;
         let b_index: u8 = 0u8;
         let stack_a: Stack = init_stack(member_size);
@@ -606,7 +606,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
             } else {
                 use_a = true;
             }
-            // assert(use_a || use_b);
+            assert(use_a || use_b);
             let card: u128 = 0u128;
             let tuple_card_stack: (u128, Stack) = (0u128, init_stack(member_size));
             if (use_a) {
@@ -786,7 +786,11 @@ program zk_deck_shuffle_v0_0_1.aleo {
     }
 
     transition test_push_u8() -> (Stack) {
-        let a1: Stack = init_stack(128u8);
+        let a1: Stack = init_stack(8u8);
+        // let a1: Stack = init_stack(16u8);
+        // let a1: Stack = init_stack(32u8);
+        // let a1: Stack = init_stack(64u8);
+        // let a1: Stack = init_stack(128u8);
         let a2: Stack = push(1u128, a1);
         let a3: Stack = push(2u128, a2);
         let a4: Stack = push(3u128, a3);
@@ -881,5 +885,42 @@ program zk_deck_shuffle_v0_0_1.aleo {
         let a1: Stack = push(1u128, a0);
         let tuple_b1: (u128, Stack) = pop(a1);
         return (a0, a1, tuple_b1.1, tuple_b1.0);
+    }
+
+    transition test_series_buffer_indexes_u8() -> (u8, u8) {
+        let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(0u16, 8u8);
+        assert(series_index == 0u8);
+        assert(buffer_index == 0u8);
+        let (series_index1, buffer_index1): (u8, u8) = get_series_buffer_indexes(1u16, 8u8);
+        assert(series_index1 == 0u8);
+        assert(buffer_index1 == 0u8);
+        let (series_index2, buffer_index2): (u8, u8) = get_series_buffer_indexes(2u16, 8u8);
+        assert(series_index2 == 0u8);
+        assert(buffer_index2 == 0u8);
+        let (series_index3, buffer_index3): (u8, u8) = get_series_buffer_indexes(3u16, 8u8);
+        assert(series_index3 == 0u8);
+        assert(buffer_index3 == 0u8);
+        let (series_index4, buffer_index4): (u8, u8) = get_series_buffer_indexes(4u16, 8u8);
+        assert(series_index4 == 0u8);
+        assert(buffer_index4 == 0u8);
+        let (series_index5, buffer_index5): (u8, u8) = get_series_buffer_indexes(5u16, 8u8);
+        assert(series_index5 == 0u8);
+        assert(buffer_index5 == 0u8);
+        let (series_index6, buffer_index6): (u8, u8) = get_series_buffer_indexes(6u16, 8u8);
+        assert(series_index6 == 0u8);
+        assert(buffer_index6 == 0u8);
+        let (series_index7, buffer_index7): (u8, u8) = get_series_buffer_indexes(7u16, 8u8);
+        assert(series_index7 == 0u8);
+        assert(buffer_index7 == 0u8);
+        let (series_index8, buffer_index8): (u8, u8) = get_series_buffer_indexes(8u16, 8u8);
+        assert(series_index8 == 0u8);
+        assert(buffer_index8 == 0u8);
+        let (series_index9, buffer_index9): (u8, u8) = get_series_buffer_indexes(3u16, 64u8);
+        assert(series_index9 == 0u8);
+        assert(buffer_index9 == 1u8);
+        let (series_index10, buffer_index10): (u8, u8) = get_series_buffer_indexes(25u16, 128u8);
+        assert (series_index10 == 0u8);
+        assert (buffer_index10 == 25u8);
+        return (series_index10, buffer_index10);
     }
 }
