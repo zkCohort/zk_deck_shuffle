@@ -1,6 +1,7 @@
 program zk_bitwise_stack_v0_0_1.aleo {
 
-    struct Stack {
+    record Stack {
+        owner: address,
         capacity: u16,
         top: u16,
         member_size: u8,
@@ -33,7 +34,7 @@ program zk_bitwise_stack_v0_0_1.aleo {
         return (series_index as u8, buffer_index as u8);
     }
 
-    function init_stack(member_size: u8) -> Stack {
+    transition init_stack(member_size: u8) -> Stack {
         assert_eq(member_size % 8u8, 0u8);
         let max_size: u16 = member_size as u16;
         let capacity: u16 = 6656u16 / max_size;
@@ -43,6 +44,7 @@ program zk_bitwise_stack_v0_0_1.aleo {
         assert(member_size > 0u8);
         assert(member_size <= 128u8);
         return Stack {
+            owner: self.caller,
             capacity,
             top: 0u16,
             member_size,
@@ -534,6 +536,7 @@ program zk_bitwise_stack_v0_0_1.aleo {
         let (s00, s01): ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
 
         return Stack {
+            owner: self.caller,
             capacity: stack.capacity,
             top: stack.top + 1u16,
             member_size: stack.member_size,
@@ -576,6 +579,7 @@ program zk_bitwise_stack_v0_0_1.aleo {
         }
         let (s00, s01): ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
         return (value, Stack {
+            owner: self.caller,
             capacity: stack.capacity,
             top: stack.top - 1u16,
             member_size: stack.member_size,

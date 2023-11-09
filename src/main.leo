@@ -14,9 +14,9 @@ program zk_deck_shuffle_v0_0_1.aleo {
     transition shuffle_deck(n: i8, member_size: u8, a: [u128; 26], b: [u128; 26]) -> [[u128; 26]; 2] {
         assert(n >= 1i8);
         assert(n <= 26i8);
-        let stack_a: Stack = init_stack(member_size);
-        let stack_b: Stack = init_stack(member_size);
-        let shuffled_stack: Stack = init_stack(member_size);
+        let stack_a: Stack = zk_bitwise_stack_v0_0_1.leo/init_stack(member_size);
+        let stack_b: Stack = zk_bitwise_stack_v0_0_1.leo/init_stack(member_size);
+        let shuffled_stack: Stack = zk_bitwise_stack_v0_0_1.leo/init_stack(member_size);
         for i: u8 in 0u8..26u8 {
             stack_a = zk_bitwise_stack_v0_0_1.leo/push(a[i], stack_a);
         }
@@ -25,7 +25,7 @@ program zk_deck_shuffle_v0_0_1.aleo {
         }
         let a_index: u8 = 0u8;
         let b_index: u8 = 0u8;
-        let tuple_card_stack: (u128, Stack) = (0u128, init_stack(member_size));
+        let tuple_card_stack: (u128, Stack) = (0u128, zk_bitwise_stack_v0_0_1.leo/init_stack(member_size));
         for i: i8 in 0i8..52i8 {
             let use_b: bool = false;
             let use_a: bool = false;
