@@ -1,7 +1,6 @@
 program zk_bitwise_stack_v0_0_1.aleo {
 
-    record Stack {
-        owner: address,
+    struct Stack {
         capacity: u16,
         top: u16,
         member_size: u8,
@@ -15,6 +14,20 @@ program zk_bitwise_stack_v0_0_1.aleo {
 
     inline is_full(stack: Stack) -> bool {
         return stack.top == stack.capacity;
+    }
+
+    inline stack_from_inputs(capacity: u16, top: u16, member_size: u8, s00: [u128; 26], s01: [u128; 26]) -> Stack {
+        return Stack {
+            capacity,
+            top,
+            member_size,
+            s00,
+            s01,
+        };
+    }
+
+    inline stack_to_outputs(stack: Stack) -> (u16, u16, u8, [u128; 26], [u128; 26]) {
+        return (stack.top, stack.capacity, stack.member_size, stack.s00, stack.s01);
     }
 
     // top is the index of the next element to be pushed.
@@ -32,27 +45,6 @@ program zk_bitwise_stack_v0_0_1.aleo {
         let series_index: u16 = top / (elements_per_buffer * BUFFERS_PER_SERIES);
         let buffer_index: u16 = (top / elements_per_buffer) % BUFFERS_PER_SERIES;
         return (series_index as u8, buffer_index as u8);
-    }
-
-    transition init_stack(member_size: u8) -> Stack {
-        assert_eq(member_size % 8u8, 0u8);
-        let max_size: u16 = member_size as u16;
-        let capacity: u16 = 6656u16 / max_size;
-        // Check for overflow
-        assert(capacity > 0u16); 
-        assert(capacity <= 832u16);
-        assert(member_size > 0u8);
-        assert(member_size <= 128u8);
-        return Stack {
-            owner: self.caller,
-            capacity,
-            top: 0u16,
-            member_size,
-            s00: [0u128, 0u128, 0u128, 0u128, 0u128, 0u128,0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128,
-                 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128],
-            s01: [0u128, 0u128, 0u128, 0u128, 0u128, 0u128,0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128,
-                 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128, 0u128],
-        };
     }
 
     function get_buffer_at_series_index(series_index: u8, buffer_index: u8, stack: Stack) -> u128 {
@@ -513,11 +505,12 @@ program zk_bitwise_stack_v0_0_1.aleo {
                 [s01b0, s01b1, s01b2, s01b3, s01b4, s01b5, s01b6, s01b7, s01b8, s01b9, s01b10, s01b11, s01b12, s01b13, s01b14, s01b15, s01b16, s01b17, s01b18, s01b19, s01b20, s01b21, s01b22, s01b23, s01b24, s01b25]);
     }
 
-    transition push(value: u128, stack: Stack) -> Stack {
+    transition push(value: u128, capacity: u16, top: u16, member_size: u8, s00: [u128; 26], s01: [u128; 26]) -> (u16, u16, u8, [u128; 26], [u128; 26]) {
         const MAX_U128_VALUE: u128 = 340282366920938463463374607431768211455u128;
         const FULL_BITS: u8 = 128u8;
         const ZERO: u8 = 0u8;
         const ONE: u8 = 1u8;
+        let stack: Stack = stack_from_inputs(capacity, top, member_size, s00, s01);
         let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(stack.top, stack.member_size);
         // Calculate series_index and modify if necessary
         let series: u128 = get_buffer_at_series_index(series_index, buffer_index, stack);
@@ -533,21 +526,23 @@ program zk_bitwise_stack_v0_0_1.aleo {
 
         // Shift Left and then use OR to add the value to the series.
         let new_buffer_in_series: u128 = (series.shl_wrapped(stack.member_size)) | value;
-        let (s00, s01): ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
+        let new_series: ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
 
-        return Stack {
-            owner: self.caller,
+        let outgoing_stack: Stack = Stack {
             capacity: stack.capacity,
             top: stack.top + 1u16,
             member_size: stack.member_size,
-            s00,
-            s01,
+            s00: new_series.0,
+            s01: new_series.1,
         };
+
+        return stack_to_outputs(outgoing_stack);
     }
 
-    transition pop(stack: Stack) -> (u128, Stack) {
+    transition pop(capacity: u16, top: u16, member_size: u8, s00: [u128; 26], s01: [u128; 26]) -> (u128, u16, u16, u8, [u128; 26], [u128; 26]) {
         const MAX_U128_VALUE: u128 = 340282366920938463463374607431768211455u128;
         const FULL_BITS: u8 = 128u8;
+        let stack: Stack = stack_from_inputs(capacity, top, member_size, s00, s01);
         // Check for underflow.
         assert(!is_empty(stack));
         let (series_index, buffer_index): (u8, u8) = get_series_buffer_indexes(stack.top - 1u16, stack.member_size);
@@ -577,14 +572,7 @@ program zk_bitwise_stack_v0_0_1.aleo {
                 assert(false);
             }
         }
-        let (s00, s01): ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
-        return (value, Stack {
-            owner: self.caller,
-            capacity: stack.capacity,
-            top: stack.top - 1u16,
-            member_size: stack.member_size,
-            s00,
-            s01,
-        });
+        let new_series: ([u128; 26], [u128; 26]) = set_buffer_at_series_index(series_index, buffer_index, stack, new_buffer_in_series);
+        return (value, stack.capacity, stack.top - 1u16, stack.member_size, new_series.0, new_series.1);
     }
 }
