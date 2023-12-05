@@ -1,11 +1,11 @@
 {
   "program": "zk_deck_shuffle_v0_0_1.aleo",
   "version": "0.0.1",
-  "description": "",
+  "description": "A program that shuffles a deck of 52 cards or equivelant cipher text.  Seven shuffles must be performed to achieve an effectively random shuffle.",
   "license": "GPL-3.0",
   "dependencies": [
     {
-      "name": "zk_bitwise_stack_v0_0_1.aleo",
+      "name": "zk_bitwise_stack_v0_0_2.aleo",
       "location": "network",
       "network": "testnet3"
     }
