@@ -5,7 +5,7 @@
   "license": "GPL-3.0",
   "dependencies": [
     {
-      "name": "zk_bitwise_stack_v0_0_2.aleo",
+      "name": "zk_bitwise_stack_v0_0_4.aleo",
       "location": "network",
       "network": "testnet3"
     }
