@@ -160,3 +160,77 @@ zk_deck_shuffle % leo run shuffle_deck 4i8 8u16 \
 
        Leo ✅ Finished 'zk_deck_shuffle_v0_0_1.aleo/shuffle_deck'
 ```
+
+After optimization
+
+```bash
+leo run shuffle_deck -- -- -4i8 8u16 \
+                 "[[63field, 62field, 61field, 60field, 59field, 58field, 57field, 56field, 55field, 54field, 53field, 52field, 51field, 50field, 49field, 48field, 47field, 46field, 45field, 44field, 43field, 42field, 41field, 40field, 39field, 38field],
+                   [37field, 36field, 35field, 34field, 33field, 32field, 31field, 30field, 29field, 28field, 27field, 26field, 25field, 24field, 23field, 22field, 21field, 20field, 19field, 18field, 17field, 16field, 15field, 14field, 13field, 12field]]"
+
+⛓  Constraints
+
+ •  'zk_deck_shuffle_v0_0_1.aleo/shuffle_deck' - 841,960 constraints (called 1 time)
+
+➡️  Output
+
+ • [
+  [
+    63field,
+    62field,
+    61field,
+    60field,
+    37field,
+    59field,
+    36field,
+    58field,
+    35field,
+    57field,
+    34field,
+    56field,
+    33field,
+    55field,
+    32field,
+    54field,
+    31field,
+    53field,
+    30field,
+    52field,
+    29field,
+    51field,
+    28field,
+    50field,
+    27field,
+    49field
+  ],
+  [
+    26field,
+    48field,
+    25field,
+    47field,
+    24field,
+    46field,
+    23field,
+    45field,
+    22field,
+    44field,
+    21field,
+    43field,
+    20field,
+    42field,
+    19field,
+    41field,
+    18field,
+    40field,
+    17field,
+    39field,
+    16field,
+    38field,
+    15field,
+    14field,
+    13field,
+    12field
+  ]
+]
+
+       Leo ✅ Finished 'zk_deck_shuffle_v0_0_1.aleo/shuffle_deck' (in "/Users/arosboro/git/zk_deck_shuffle/build")
